@@ -24,7 +24,7 @@ class CardImagem(QFrame):
         label.setAlignment(Qt.AlignCenter)
 
         info_layout = QVBoxLayout()
-        info_layout.addWidget(QLabel(imagem.alt))
+        info_layout.addWidget(QLabel(imagem.photographer))
 
         layout.addWidget(label)
         layout.addLayout(info_layout)
