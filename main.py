@@ -1,11 +1,30 @@
 import sys
 
 import requests
-from PySide6.QtWidgets import QPushButton, QWidget, QApplication, QVBoxLayout, QScrollArea, QLabel, QMainWindow
+from PySide6.QtWidgets import QPushButton, QWidget, QApplication, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QDialog
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, Slot, QObject, QThread, Signal
 
 from service import Service
+
+
+class Dialog(QDialog):
+    def __init__(self, data, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Detalhe da foto")
+        layout = QVBoxLayout()
+        self.alt = QLabel(data['alt'])
+        self.width = QLabel(str(data['width']))
+        self.height = QLabel(str(data['height']))
+        self.photographer = QLabel(data['photographer'])
+        self.photographer_url = QLabel(data['photographer_url'])
+        # self.label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        layout.addWidget(self.alt)
+        layout.addWidget(self.width)
+        layout.addWidget(self.height)
+        layout.addWidget(self.photographer)
+        layout.addWidget(self.photographer_url)
+        self.setLayout(layout)
 
 
 class Requisicao(QObject):
@@ -29,8 +48,13 @@ class Requisicao(QObject):
             response = requests.get(imagem['src']['large'])  # TODO: Melhorar fluxo de chamadas
 
             imagem = {
-                "label": response.content,
-                "description": imagem['alt']
+                "id": imagem['id'],
+                "photo": response.content,
+                "alt": imagem['alt'],
+                "width": imagem['width'],
+                "height": imagem['height'],
+                "photographer": imagem['photographer'],
+                "photographer_url": imagem['photographer_url'],
             }
             self.atualizar.emit(imagem)
 
@@ -65,6 +89,7 @@ class MainViewer(QMainWindow):
 
     def start_thread(self):
         self.button.setEnabled(False)
+        self.button.setText('Carregando...')
 
         self.thread = QThread()
         self.requisicao = Requisicao(pagina=self.pagina)
@@ -86,17 +111,24 @@ class MainViewer(QMainWindow):
     def update_label(self, imagem):
         label = QLabel()
         pixmap = QPixmap()
-        pixmap.loadFromData(imagem['label'])
+        pixmap.loadFromData(imagem['photo'])
         scaled_pixmap = pixmap.scaled(800, 600)
         label.setPixmap(scaled_pixmap)
 
-        description = QLabel(imagem['description'])
+        description = QPushButton(imagem['alt'])
+
+        description.clicked.connect(lambda: self.abrir_dialog(imagem))
 
         self.container_layout.addWidget(label)
         self.container_layout.addWidget(description)
 
+    def abrir_dialog(self, imagem):
+        dialog = Dialog(imagem)
+        dialog.exec()
+
     @Slot()
     def on_finished(self):
+        self.button.setText("Carregar imagens")
         self.button.setEnabled(True)
 
 
