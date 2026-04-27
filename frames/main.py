@@ -1,11 +1,11 @@
 import csv
 
-from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow
-from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QMainWindow
 from PySide6.QtCore import Qt, Slot, QThread
 
+from frames.card import CardImagem
 from frames.dialog import DialogDetalhe
-from frames.requisicao import Requisicao
+from threads.requisicao import RequisicaoThread
 
 
 class MainViewer(QMainWindow):
@@ -49,7 +49,7 @@ class MainViewer(QMainWindow):
         self.button.setText('Carregando...')
 
         self.thread = QThread()
-        self.requisicao = Requisicao(pagina=self.pagina)
+        self.requisicao = RequisicaoThread(pagina=self.pagina)
 
         self.requisicao.moveToThread(self.thread)
 
@@ -68,22 +68,8 @@ class MainViewer(QMainWindow):
     def adiciona_imagens_tela(self, imagem):
         if imagem is not None:
             self.imagens.append(imagem)
-            label = QLabel()
-            pixmap = QPixmap()
-            pixmap.loadFromData(imagem.photo)
-            scaled_pixmap = pixmap.scaled(540, 540)
-            label.setPixmap(scaled_pixmap)
-            label.setAlignment(Qt.AlignCenter)
-
-            description = QPushButton(imagem.alt)
-
-            description.clicked.connect(lambda: self.abrir_dialog(imagem))
-
-            description.setMinimumWidth(540)
-            description.setMaximumWidth(540)
-
-            self.container_layout.addWidget(label)
-            self.container_layout.addWidget(description)
+            card = CardImagem(imagem=imagem, on_click_callback=lambda: self.abrir_dialog(imagem))
+            self.container_layout.addWidget(card)
 
     def abrir_dialog(self, imagem):
         dialog = DialogDetalhe(imagem)

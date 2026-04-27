@@ -1,6 +1,6 @@
 from service import Service
 
 service = Service()
-request = service.get_requisicao()
+request = service.lista_fotos()
 
 print("Minha requisição: ", request["photos"])

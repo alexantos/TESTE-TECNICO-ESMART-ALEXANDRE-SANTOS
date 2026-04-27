@@ -11,7 +11,6 @@ class DialogDetalhe(QDialog):
         self.height = QLabel(str(imagem.height))
         self.photographer = QLabel(imagem.photographer)
         self.photographer_url = QLabel(imagem.photographer_url)
-        # self.alt.setStyleSheet("font-size: 16px; font-weight: bold;")
         layout.addWidget(self.alt)
         layout.addWidget(self.width)
         layout.addWidget(self.height)

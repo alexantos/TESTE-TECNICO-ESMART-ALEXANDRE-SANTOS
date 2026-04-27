@@ -18,21 +18,21 @@ class Service:
             "Authorization": api_key
         }
         params = {
-            "query": "",
+            "query": "animal",
             "orientation": "square",
             "size": "small",
             "per_page": self.itens_por_pagina,
             "page": self.pagina
         }
-        r = requests.get(
+        request = requests.get(
             url=self.url,
             headers=headers,
             params=params
         )
-        return r
+        return request
 
     def recupera_foto(self, url):
-        r = requests.get(
+        request = requests.get(
             url=url,
         )
-        return r
+        return request

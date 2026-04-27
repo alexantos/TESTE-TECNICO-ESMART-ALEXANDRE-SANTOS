@@ -1,11 +1,11 @@
 from PySide6.QtCore import Slot, QObject, Signal
 
-from frames.dialog import DialogDetalhe, DialogAlerta
+from frames.dialog import DialogAlerta
 from models.imagem import Imagem
 from service.service import Service
 
 
-class Requisicao(QObject):
+class RequisicaoThread(QObject):
     finalizado = Signal()
     atualizar = Signal(object)
 
@@ -24,7 +24,6 @@ class Requisicao(QObject):
         if request.status_code == 200:
             for photo in request.json()['photos']:
                 foto = service.recupera_foto(url=photo['src']['large'])
-
                 imagem = Imagem(
                     id=photo['id'],
                     photo=foto.content,
@@ -34,7 +33,6 @@ class Requisicao(QObject):
                     photographer=photo['photographer'],
                     photographer_url=photo['photographer_url'],
                 )
-
                 self.atualizar.emit(imagem)
         else:
             dialog = DialogAlerta(
@@ -43,3 +41,4 @@ class Requisicao(QObject):
             )
             dialog.exec()
             self.atualizar.emit(None)
+            self.atualizar.disconnect()
