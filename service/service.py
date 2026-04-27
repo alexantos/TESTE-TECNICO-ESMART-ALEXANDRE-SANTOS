@@ -18,7 +18,9 @@ class Service:
             "Authorization": api_key
         }
         params = {
-            "query": "nature",
+            "query": "animal",
+            "orientation": "square",
+            "size": "small",
             "per_page": self.itens_por_pagina,
             "page": self.pagina
         }

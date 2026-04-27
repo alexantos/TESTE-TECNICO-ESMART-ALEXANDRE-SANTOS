@@ -1,75 +1,11 @@
 import csv
-import requests
-import sys
 
-from PySide6.QtWidgets import QPushButton, QWidget, QApplication, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QDialog
+from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt, Slot, QObject, QThread, Signal
+from PySide6.QtCore import Qt, Slot, QThread
 
-from service import Service
-
-
-class Imagem:
-    def __init__(self, id, photo, alt, width, height, photographer, photographer_url):
-        self.id = id
-        self.photo = photo
-        self.alt = alt
-        self.width = width
-        self.height = height
-        self.photographer = photographer
-        self.photographer_url = photographer_url
-
-
-class Dialog(QDialog):
-    def __init__(self, imagem, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Detalhe da foto")
-        layout = QVBoxLayout()
-        self.alt = QLabel(imagem.alt)
-        self.width = QLabel(str(imagem.width))
-        self.height = QLabel(str(imagem.height))
-        self.photographer = QLabel(imagem.photographer)
-        self.photographer_url = QLabel(imagem.photographer_url)
-        # self.label.setStyleSheet("font-size: 16px; font-weight: bold;")
-        layout.addWidget(self.alt)
-        layout.addWidget(self.width)
-        layout.addWidget(self.height)
-        layout.addWidget(self.photographer)
-        layout.addWidget(self.photographer_url)
-        self.setLayout(layout)
-
-
-class Requisicao(QObject):
-    finalizado = Signal()
-    atualizar = Signal(object)
-
-    def __init__(self, pagina):
-        super().__init__()
-        self.pagina = pagina
-
-    @Slot()
-    def requisicao_lenta(self):
-        self.carrega_imagens()
-        self.finalizado.emit()
-
-    def carrega_imagens(self):  # TODO: Fazer novos métodos com novas camadas para chamadas
-        service = Service(pagina=self.pagina)
-        request = service.get_requisicao()
-
-        for photo in request['photos']:
-            response = requests.get(photo['src']['large'])
-
-            imagem = Imagem(
-                id=photo['id'],
-                photo=response.content,
-                alt=photo['alt'],
-                width=photo['width'],
-                height=photo['height'],
-                photographer=photo['photographer'],
-                photographer_url=photo['photographer_url'],
-            )
-
-            self.atualizar.emit(imagem)
+from frames.dialog import Dialog
+from frames.requisicao import Requisicao
 
 
 class MainViewer(QMainWindow):
@@ -80,14 +16,14 @@ class MainViewer(QMainWindow):
         self.imagens = []
 
         self.setWindowTitle('Imagens')
-        self.resize(800, 600)
+        self.resize(600, 800)
 
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
 
         self.container = QWidget()
         self.container_layout = QVBoxLayout(self.container)
-        self.container_layout.setAlignment(Qt.AlignTop)
+        self.container_layout.setAlignment(Qt.AlignCenter)
 
         self.scroll.setWidget(self.container)
 
@@ -104,6 +40,8 @@ class MainViewer(QMainWindow):
         main_layout.addWidget(self.button_csv)
 
         self.setCentralWidget(main_widget)
+
+        self.carrega_imagens()
 
     def carrega_imagens(self):
         self.button.setEnabled(False)
@@ -132,12 +70,16 @@ class MainViewer(QMainWindow):
         label = QLabel()
         pixmap = QPixmap()
         pixmap.loadFromData(imagem.photo)
-        scaled_pixmap = pixmap.scaled(800, 600)
+        scaled_pixmap = pixmap.scaled(540, 540)
         label.setPixmap(scaled_pixmap)
+        label.setAlignment(Qt.AlignCenter)
 
         description = QPushButton(imagem.alt)
 
         description.clicked.connect(lambda: self.abrir_dialog(imagem))
+
+        description.setMinimumWidth(540)
+        description.setMaximumWidth(540)
 
         self.container_layout.addWidget(label)
         self.container_layout.addWidget(description)
@@ -168,10 +110,3 @@ class MainViewer(QMainWindow):
             writer = csv.writer(file)
             writer.writerow(['alt', 'width', 'height', 'photographer', 'photographer_url'])
             writer.writerows(csv_list)
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainViewer()
-    window.show()
-    sys.exit(app.exec())
