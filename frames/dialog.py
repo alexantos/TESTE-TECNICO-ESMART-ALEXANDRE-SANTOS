@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QDialog
 
 
-class Dialog(QDialog):
+class DialogDetalhe(QDialog):
     def __init__(self, imagem, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Detalhe da foto")
@@ -17,4 +17,14 @@ class Dialog(QDialog):
         layout.addWidget(self.height)
         layout.addWidget(self.photographer)
         layout.addWidget(self.photographer_url)
+        self.setLayout(layout)
+
+
+class DialogAlerta(QDialog):
+    def __init__(self, titulo, mensagem, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(titulo)
+        layout = QVBoxLayout()
+        mensagem = QLabel(mensagem)
+        layout.addWidget(mensagem)
         self.setLayout(layout)

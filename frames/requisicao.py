@@ -1,7 +1,6 @@
-import requests
-
 from PySide6.QtCore import Slot, QObject, Signal
 
+from frames.dialog import DialogDetalhe, DialogAlerta
 from models.imagem import Imagem
 from service.service import Service
 
@@ -19,21 +18,28 @@ class Requisicao(QObject):
         self.carrega_imagens()
         self.finalizado.emit()
 
-    def carrega_imagens(self):  # TODO: Fazer novos métodos com novas camadas para chamadas
+    def carrega_imagens(self):
         service = Service(pagina=self.pagina)
-        request = service.get_requisicao()
+        request = service.lista_fotos()
+        if request.status_code == 200:
+            for photo in request.json()['photos']:
+                foto = service.recupera_foto(url=photo['src']['large'])
 
-        for photo in request['photos']:
-            response = requests.get(photo['src']['large'])
+                imagem = Imagem(
+                    id=photo['id'],
+                    photo=foto.content,
+                    alt=photo['alt'],
+                    width=photo['width'],
+                    height=photo['height'],
+                    photographer=photo['photographer'],
+                    photographer_url=photo['photographer_url'],
+                )
 
-            imagem = Imagem(
-                id=photo['id'],
-                photo=response.content,
-                alt=photo['alt'],
-                width=photo['width'],
-                height=photo['height'],
-                photographer=photo['photographer'],
-                photographer_url=photo['photographer_url'],
+                self.atualizar.emit(imagem)
+        else:
+            dialog = DialogAlerta(
+                titulo='Erro ao carregar imagens',
+                mensagem="Falha ao recuperar imagens, tente novamente mais tarde"
             )
-
-            self.atualizar.emit(imagem)
+            dialog.exec()
+            self.atualizar.emit(None)

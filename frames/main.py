@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QL
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, Slot, QThread
 
-from frames.dialog import Dialog
+from frames.dialog import DialogDetalhe
 from frames.requisicao import Requisicao
 
 
@@ -57,7 +57,7 @@ class MainViewer(QMainWindow):
         self.requisicao.finalizado.connect(self.thread.quit)
         self.requisicao.finalizado.connect(self.requisicao.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
-        self.requisicao.atualizar.connect(self.update_label)
+        self.requisicao.atualizar.connect(self.adiciona_imagens_tela)
         self.thread.finished.connect(self.on_finished)
 
         self.thread.start()
@@ -65,27 +65,28 @@ class MainViewer(QMainWindow):
         self.pagina += 1
 
     @Slot(object)
-    def update_label(self, imagem):
-        self.imagens.append(imagem)
-        label = QLabel()
-        pixmap = QPixmap()
-        pixmap.loadFromData(imagem.photo)
-        scaled_pixmap = pixmap.scaled(540, 540)
-        label.setPixmap(scaled_pixmap)
-        label.setAlignment(Qt.AlignCenter)
+    def adiciona_imagens_tela(self, imagem):
+        if imagem is not None:
+            self.imagens.append(imagem)
+            label = QLabel()
+            pixmap = QPixmap()
+            pixmap.loadFromData(imagem.photo)
+            scaled_pixmap = pixmap.scaled(540, 540)
+            label.setPixmap(scaled_pixmap)
+            label.setAlignment(Qt.AlignCenter)
 
-        description = QPushButton(imagem.alt)
+            description = QPushButton(imagem.alt)
 
-        description.clicked.connect(lambda: self.abrir_dialog(imagem))
+            description.clicked.connect(lambda: self.abrir_dialog(imagem))
 
-        description.setMinimumWidth(540)
-        description.setMaximumWidth(540)
+            description.setMinimumWidth(540)
+            description.setMaximumWidth(540)
 
-        self.container_layout.addWidget(label)
-        self.container_layout.addWidget(description)
+            self.container_layout.addWidget(label)
+            self.container_layout.addWidget(description)
 
     def abrir_dialog(self, imagem):
-        dialog = Dialog(imagem)
+        dialog = DialogDetalhe(imagem)
         dialog.exec()
 
     @Slot()

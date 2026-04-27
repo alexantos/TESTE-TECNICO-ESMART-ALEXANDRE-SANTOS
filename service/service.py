@@ -13,12 +13,12 @@ class Service:
         self.pagina = pagina
         self.url = 'https://api.pexels.com/v1/search'
 
-    def get_requisicao(self):
+    def lista_fotos(self):
         headers = {
             "Authorization": api_key
         }
         params = {
-            "query": "animal",
+            "query": "",
             "orientation": "square",
             "size": "small",
             "per_page": self.itens_por_pagina,
@@ -29,4 +29,10 @@ class Service:
             headers=headers,
             params=params
         )
-        return r.json()
+        return r
+
+    def recupera_foto(self, url):
+        r = requests.get(
+            url=url,
+        )
+        return r
